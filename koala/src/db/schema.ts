@@ -6,9 +6,7 @@ import {
     integer,
     json,
     uuid,
-    primaryKey,
 } from 'drizzle-orm/pg-core';
-import { title } from 'process';
 
 export const users = pgTable('users', {
     userId:

@@ -6,11 +6,6 @@ const ROUTES = {
   HOME: "/",
 } as const
 
-type Route = {
-  path: string;
-  component: React.ComponentType;
-}
-
 export const Route =   createFileRoute('/')({
   component: Home
 })
