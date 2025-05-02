@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { RouterProvider } from '@tanstack/react-router';
 import { router } from '../router';
+import  '../styles/globals.css';
 
 export default function App() {
   const [mounted, setMounted] = useState(false);
