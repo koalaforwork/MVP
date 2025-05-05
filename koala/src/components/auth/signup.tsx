@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { useState } from 'react';
+import { supabase } from '@/lib/supabaseClient';
 
 const signupFormSchema = z.object({
   email: z.string().email('Invalid email address'),
@@ -13,6 +15,10 @@ const signupFormSchema = z.object({
 
 
 const Signup = () => {
+const [loading, setLoading] = useState(false);
+const [emailSent, setEmailSent] = useState(false);
+const [error, setError] = useState<string | null>(null);
+
   const form = useForm<z.infer<typeof signupFormSchema>>({
     resolver: zodResolver(signupFormSchema),
     defaultValues: {
@@ -20,10 +26,35 @@ const Signup = () => {
     },
   });
 
-  function onSubmit(values: z.infer<typeof signupFormSchema>) {
-    console.log("signup form submitted with" ,values);
-    // TODO: Handle signup logic using supabase auth
+
+  async function onEmailSubmit(values: z.infer<typeof signupFormSchema>) {
+    setLoading(true);
+    setError(null);
+    setEmailSent(false);
+
+    const redirectUrl = `${window.location.origin}/signup`;
+
+    try {
+      const { error } = await supabase.auth.signInWithOtp({
+        email: values.email,
+        options: {
+          emailRedirectTo: redirectUrl,
+        },
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setEmailSent(true);
+    } catch (error: any) {
+      console.error("Error sending magic link:", error);
+      setError(error.message || 'An unexpected error occured. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   }
+
   return (
     <div className="min-h-screen w-full bg-white flex items-center justify-center">
       <div className="w-[375px] md:w-[1440px] h-[850px] md:h-[900px] flex flex-col md:flex-row">
@@ -43,7 +74,7 @@ const Signup = () => {
               </div>
 
               <Form {...form}>
-                <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-col gap-6">
+                <form onSubmit={form.handleSubmit(onEmailSubmit)} className="w-full flex flex-col gap-6">
                   <FormField
                     control={form.control}
                     name="email"
