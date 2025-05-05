@@ -69,14 +69,13 @@ const Signup = () => {
                   >
                     Sign up
                   </Button>
-                  <div className="w-full flex items-center justify-start gap-4 h-6"> {/* Container div */}
-                    <span className="text-[#858C95] font-['Inter'] font-normal text-base leading-6 tracking-normal"> {/* Text styles */}
+                  <div className="w-full flex items-center justify-start gap-4 h-6">
+                    <span className="text-[#858C95] font-['Inter'] font-normal text-base leading-6 tracking-normal">
                       Already have an account?
                     </span>
-                    {/* Using a simple <a> tag for the link */}
                     <a
-                      href="/login" // TODO: Replace with router Link component if using @tanstack/react-router
-                      className="text-[#268771] font-['Inter'] font-normal text-base leading-6 tracking-normal rounded-[5px]" // Link styles
+                      href="/login" // Link to the login page
+                      className="text-[#268771] font-['Inter'] font-normal text-base leading-6 tracking-normal rounded-[5px]"
                     >
                       Log in
                     </a>
