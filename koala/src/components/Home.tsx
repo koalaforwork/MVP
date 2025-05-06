@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabaseClient';
 import { useNavigate } from '@tanstack/react-router';
+import Navbar from './shared/Navbar';
 
 const Home = () => {
   const [userDbStatus, setUserDbStatus] = useState<'checking' | 'created' | 'exists' | 'error' | null>(null);
   const [userDbError, setUserDbError] = useState<string | null>(null);
   const [authChecked, setAuthChecked] = useState(false);
+  const [session, setSession] = useState<any>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,10 +28,10 @@ const Home = () => {
     
     const checkAndCreateUserInDb = async () => {
 
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        sessionStorage.setItem('user', JSON.stringify(session.user));
-
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (currentSession) {
+        sessionStorage.setItem('user', JSON.stringify(currentSession.user));
+        setSession(currentSession);
         setUserDbStatus('checking');
         setUserDbError(null);
 
@@ -39,7 +41,7 @@ const Home = () => {
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ userId: session.user.id, email: session.user.email }),
+            body: JSON.stringify({ userId: currentSession.user.id, email: currentSession.user.email }),
           });
 
           const data = await response.json();
@@ -67,18 +69,11 @@ const Home = () => {
     checkAndCreateUserInDb();
   }, [])
   return (
-    <div>
-      <h1>Hello World</h1>
-      <p>If you see this, your routing is working perfectly!</p>
+    <div className="min-h-screen bg-background">
 
-      {/* Display status of user DB creation/check */}
-      {userDbStatus === 'checking' && <p>Setting up your profile...</p>}
-      {userDbStatus === 'created' && <p>Your profile has been created!</p>}
-      {userDbStatus === 'exists' && <p>Welcome back! Your profile exists.</p>}
-      {userDbStatus === 'error' && <p className="text-red-500">Error setting up profile: {userDbError}</p>}
-      {/* If userDbStatus is null, it means no logged-in user was found */}
+      <Navbar username={session?.user?.user_metadata?.name || "User"} />
+      
     </div>
-  )
-}
+  );
 
-export default Home
+};export default Home
