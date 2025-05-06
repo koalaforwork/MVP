@@ -8,9 +8,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabaseClient';
-import { db } from '@/db';
-import { users } from '@/db/schema';
-import { eq } from 'drizzle-orm';
 import { useNavigate } from '@tanstack/react-router';
 
 const signupFormSchema = z.object({
@@ -31,217 +28,35 @@ const navigate = useNavigate();
     },
   });
 
-  useEffect(() => {
-    console.log("useEffect running...");
-    const handleAuthCallback = async () => {
-      console.log("handleAuthCallback called.");
-      const params = new URLSearchParams(window.location.search);
-      const code = params.get('code');
+async function onEmailSubmit(values: z.infer<typeof signupFormSchema>) {
+  setLoading(true);
+  setError(null);
+  setEmailSent(false);
 
-      console.log("URL code parameter", code);
 
-      const fragment = window.location.hash.substring(1);
+  const redirectUrl = `${window.location.origin}/`;
 
-      const paramsFromFragment = new URLSearchParams(fragment);
-
-      const authError = paramsFromFragment.get('error');
-
-      console.log("URL code parameter", code);
-      console.log("URL fragment error_description:", authError);
-
-      if (authError) {
-        console.error("Authentication error:", authError);
-        setError(authError);
-        setLoading(false);
-        setEmailSent(false);
-
-        console.log("Cleaning up URL parameters and fragment after error.");
-        window.history.replaceState({}, document.title, window.location.pathname);
-        return;
-      }
-
-      if (code) {
-        console.log("code found in URL, attempting to exchange for session...");
-        setLoading(true);
-        setError(null);
-        setEmailSent(false);
-
-        try {
-          const { data, error: sessionError } = await supabase.auth.exchangeCodeForSession(code);
-
-          console.log("exchange code for session result:", data, sessionError);
-
-          if (sessionError) {
-            console.error("Error exchanging code for session:", sessionError);
-            throw sessionError;
-          }
-
-          const user = data.session?.user;
-
-          if (user) {
-            console.log("Authentication succesful. user:", user);
-
-            console.log("Checking if user exists in database with ID:", user.id);
-            const existingUser = await db.select()
-            .from(users)
-            .where(eq(users.userId, user.id))
-            .limit(1);
-
-            console.log("Existing user check result:", existingUser);
-
-            if (existingUser.length === 0) {
-              console.log("User does not exist in database. Inserting...");
-              try {
-                const defaultPreferences = {
-                  workHours: { start: '09:00', end: '17:00' },
-                  focusSessionDuration: 25,
-                  breakDuration: 5,
-                  notificationPreferences: {
-                    email: true,
-                    push: false,
-                  },
-                };
-
-                const defaultEmotionalPatterns = {
-                  commonTriggers: [],
-                  effectiveTechniques: [],
-                  energyPeaktimes: [],
-                };
-
-                const defaultWorkStyle = {
-                  preferTaskTypes: [],
-                  contextSwitchingStyle: [],
-                  decisionMakingStyle: [],
-                };
-
-                // using email as a placeholder name
-                const defaultName = user.email ? user.email.split('@')[0] : 'User';
-
-                console.log("Inserting user into database with values:", {
-                  userId: user.id,
-                  name: defaultName,
-                  preferences: defaultPreferences,
-                  emotionalPatterns: defaultEmotionalPatterns,
-                  workStyle: defaultWorkStyle,
-                });
-
-                // Insert the user into the database
-                await db.insert(users).values({
-                  userId: user.id,
-                  name: defaultName,
-                  preferences: defaultPreferences,
-                  emotionalPatterns: defaultEmotionalPatterns,
-                  workStyle: defaultWorkStyle,
-                }).onConflictDoNothing();
-              } catch (dbError: any) {
-                console.error("Error inserting user into database:", dbError);
-                setError(dbError.message || 'sign-in successful, but failed to set up user profile. Please contact support');
-              }
-            } else {
-              console.log('user exists in database');
-            }
-
-            navigate({ to: '/' });
-          } else {
-            console.error("Authentication successful, but user data not found.");
-          }
-        } catch (authError: any) {
-          console.error("Authentication error:", authError);
-          setError(authError.message || 'An unexpected error occured. Please try again.');
-        } finally {
-          setLoading(false);
-
-          window.history.replaceState({}, document.title, window.location.pathname);
-        }
-      }
-    };
-
-    const { data: { subscription: authListener } } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
-      if (event === 'SIGNED_IN' && currentSession) {
-        const user = currentSession.user;
-        if (user) {
-          try {
-            const existingUser = await db.select()
-            .from(users)
-            .where(eq(users.userId, user.id))
-            .limit(1);
-
-            if (existingUser.length === 0) {
-              const defaultPreferences = {
-                workHours: { start: '09:00', end: '17:00' },
-                focusSessionDuration: 25,
-                breakDuration: 5,
-                notificationPreferences: {
-                  email: true,
-                  push: false,
-                },
-              };
-              const defaultEmotionalPatterns = {
-                commonTriggers: [],
-                effectiveTechniques: [],
-                energyPeaktimes: [],
-              };
-              const defaultWorkStyle = {
-                preferTaskTypes: [],
-                contextSwitchingStyle: [],
-                decisionMakingStyle: [],
-              };
-              const defaultName = user.email ? user.email.split('@')[0] : 'User';
-
-              await db.insert(users).values({
-                userId: user.id,
-                name: defaultName,
-                preferences: defaultPreferences,
-                emotionalPatterns: defaultEmotionalPatterns,
-                workStyle: defaultWorkStyle,
-              })
-              .onConflictDoNothing();
-              console.log('user inserted into database');
-            } else {
-              console.log("Auth state SIGNED_IN: user already exists in database");
-            }
-          } catch (dbError: any) {
-            console.log("Error inserting user into database:", dbError);
-            setError(dbError.message || 'sign-in successful, but failed to set up user profile. Please contact support');
-          }
-        }
-      }
+  try {
+    const { error } = await supabase.auth.signInWithOtp({
+      email: values.email,
+      options: {
+        emailRedirectTo: redirectUrl,
+      },
     });
 
-    handleAuthCallback();
-
-    return () => {
-      authListener?.unsubscribe();
-    };
-  }, [navigate]);
-
-  async function onEmailSubmit(values: z.infer<typeof signupFormSchema>) {
-    setLoading(true);
-    setError(null);
-    setEmailSent(false);
-
-    const redirectUrl = `${window.location.origin}/signup`;
-
-    try {
-      const { error } = await supabase.auth.signInWithOtp({
-        email: values.email,
-        options: {
-          emailRedirectTo: redirectUrl,
-        },
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      setEmailSent(true);
-    } catch (error: any) {
-      console.error("Error sending magic link:", error);
-      setError(error.message || 'An unexpected error occured. Please try again.');
-    } finally {
-      setLoading(false);
+    if (error) {
+      throw error;
     }
+
+    setEmailSent(true);
+  } catch (error: any) {
+    console.error("Error sending magic link:", error);
+    setError(error.message || 'An unexpected error occured. Please try again.');
+  } finally {
+    setLoading(false);
   }
+}
+
 
   return (
     <div className="min-h-screen w-full bg-white flex items-center justify-center">
