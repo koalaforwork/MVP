@@ -39,11 +39,34 @@ export default async function handler(
 
     const existingUser = await db.select()
       .from(users)
-      .where(eq(users.userId, userId))
+      .where(eq(users.name, email.split('@')[0]))
       .limit(1);
 
 
-    if (existingUser.length === 0) {
+    if (existingUser.length > 0) {
+
+      if (existingUser[0],userId !== userId) {
+        await db.update(users)
+        .set({userId: userId})
+        .where(eq(users.userId, existingUser[0].userId));
+      }
+
+      return res.status(200).json({ success: true, message: "User already exists in database." });
+    }
+
+    const existingUserById = await db.select()
+    .from(users)
+    .where(eq(users.userId, userId))
+    .limit(1);
+
+    if (existingUserById.length > 0) {
+      return res.status(200).json({
+        success: true,
+        message: "User already exists in database.",
+        user: existingUserById[0],
+      });
+    }
+
 
       const defaultName = email ? email.split('@')[0] : 'New User';
 
@@ -56,10 +79,6 @@ export default async function handler(
       })
       .onConflictDoNothing();
       return res.status(200).json({ success: true, message: "User created in database." });
-
-    } else {
-        return res.status(200).json({ success: true, message: "User already exists in database." });
-    }
 
   } catch (dbError: any) {
     if (!res.headersSent) {
