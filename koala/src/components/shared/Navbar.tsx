@@ -48,13 +48,13 @@ const Navbar = ({
   return (
     <div
       className={cn(
-        "w-full h-[70px] border-b border-gray-200 flex items-center",
+        "w-full h-[70px] flex items-center",
         className
       )}
     >
       <div className="w-full flex justify-between items-center px-4 md:px-8">
         <div className="flex items-center gap-1">
-          <h1 className="text-[24px] font-semibold leading-[100%] tracking-[-0.1px] text-[#323539]">
+          <h1 className="text-[24px] font-semibold font-['inter'] leading-[100%] tracking-[-0.1px] text-[#323539]">
             {title}
           </h1>
         </div>
@@ -99,7 +99,7 @@ const Navbar = ({
                 />
               )}
             </div>
-            <span className="hidden md:inline text-[14px] font-semibold leading-[20px] tracking-[-0.1px] text-[#323539]">
+            <span className="hidden md:inline text-[14px] font-semibold font-['inter'] leading-[20px] tracking-[-0.1px] text-[#323539]">
               {username}
             </span>
             <input
