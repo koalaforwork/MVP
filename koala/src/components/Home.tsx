@@ -163,28 +163,30 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      <Navbar
-        username={session?.user?.user_metadata?.name || "User"}
-        avatarUrl={avatarUrl}
-        avatarLoading={avatarLoading}
-        onAvatarUpdate={handleAvatarUpdate}
-      />
-
-      {/* This container takes up the full height on mobile and centers content on desktop */}
-      <div className="flex-grow flex flex-col md:items-center md:justify-center">
-        {/* On mobile: full height, On desktop: slightly taller to fit everything */}
-        <div className="flex-grow flex flex-col md:flex-grow-0 md:h-[380px] w-full max-w-[335px] md:max-w-[644px] mx-auto">
-          <ChatContainer
-            username={session?.user?.user_metadata?.name || "Valerie"}
-            welcomeDescription="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam"
-            suggestedPrompt={{
-              text: "How am I doing today?",
-              icon: "lightbulb",
-            }}
-            onPromptClick={handlePromptClick}
-            onSendMessage={handleSendMessage}
-            className="flex-grow flex flex-col"
-          />
+      {/* Fixed navbar at the top */}
+      <div className="flex-shrink-0">
+        <Navbar 
+          username={session?.user?.user_metadata?.name || "User"} 
+          avatarUrl={avatarUrl} 
+          avatarLoading={avatarLoading} 
+          onAvatarUpdate={handleAvatarUpdate} 
+        />
+      </div>
+      
+      {/* Scrollable content area that takes remaining height */}
+      <div className="flex-grow flex flex-col overflow-hidden">
+        <div className="flex-grow flex items-center justify-center">
+          <div className="w-full max-w-[335px] md:max-w-[644px] mx-auto">
+            <ChatContainer
+              username={session?.user?.user_metadata?.name || "Valerie"}
+              userAvatar={avatarUrl}
+              welcomeDescription="Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam"
+              suggestedPrompt={{ text: "How am I doing today?", icon: "lightbulb" }}
+              onPromptClick={handlePromptClick}
+              onSendMessage={handleSendMessage}
+              className="flex-grow flex flex-col"
+            />
+          </div>
         </div>
       </div>
     </div>
