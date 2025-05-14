@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
+import ChatOptions from './chatOptions';
 
 interface ChatBubbleProps {
   content: string;
@@ -16,7 +17,7 @@ const ChatBubble = ({
   timestamp,
   userAvatar,
   username = "User",
-  className
+  className,
 }: ChatBubbleProps) => {
   const isUser = sender === 'user';
   

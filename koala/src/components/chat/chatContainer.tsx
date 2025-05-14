@@ -1,15 +1,22 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { cn } from '@/lib/utils';
-import ChatWelcome from './chatwelcome';
-import ChatInput from './chatInput';
-import ChatBubble from './chatBubble';
+import React, { useState, useRef, useEffect } from "react";
+import { cn } from "@/lib/utils";
+import ChatWelcome from "./chatwelcome";
+import ChatInput from "./chatInput";
+import ChatBubble from "./chatBubble";
+import ChatOptions from "./chatOptions";
 
 // Define message type
 interface Message {
   id: string;
   content: string;
-  sender: 'user' | 'assistant';
+  sender: "user" | "assistant";
   timestamp: Date;
+}
+
+interface ChatOptionGroup {
+  id: string;
+  options: string[];
+  forMessageId: string;
 }
 
 interface ChatContainerProps {
@@ -29,9 +36,10 @@ const ChatContainer = ({
   welcomeDescription = "Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam",
   suggestedPrompt = { text: "How am I doing today?", icon: "lightbulb" },
   onPromptClick,
-  onSendMessage
+  onSendMessage,
 }: ChatContainerProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
+  const [optionGroups, setOptionGroups] = useState<ChatOptionGroup[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showWelcome, setShowWelcome] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -40,86 +48,124 @@ const ChatContainer = ({
   // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, isLoading]);
+  }, [messages, optionGroups, isLoading]);
 
   // Handle prompt click
   const handlePromptClick = async (prompt: string) => {
     if (onPromptClick) onPromptClick(prompt);
-    
+
     // Hide welcome screen
     setShowWelcome(false);
-    
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       content: prompt,
-      sender: 'user',
-      timestamp: new Date()
+      sender: "user",
+      timestamp: new Date(),
     };
-    
-    setMessages(prev => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-    
-    // Simulate AI response (replace with actual API call)
+
+    // TODO: replace with actual API call
     setTimeout(() => {
+      const assistantMessageId = (Date.now() + 1).toString();
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         content: `Morning ${username}, let's see how you're doing today. 💤 How did you sleep last night? Just share how it felt — no need to track numbers.`,
-        sender: 'assistant',
-        timestamp: new Date()
+        sender: "assistant",
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      setOptionGroups((prev) => [
+        ...prev,
+        {
+          id: Date.now().toString(),
+          options: [
+            "Restful 😌",
+            "Broken 😕",
+            "Barely slept 😫",
+            "Can't remember 🤔",
+          ],
+          forMessageId: assistantMessageId,
+        },
+      ]);
+
       setIsLoading(false);
     }, 1500);
+  };
+
+  const handleOptionSelect = (option: string) => {
+    setOptionGroups([]);
+    handleSendMessage(option);
   };
 
   // Handle sending a message
   const handleSendMessage = async (message: string) => {
     if (onSendMessage) onSendMessage(message);
-    
+
     // Hide welcome screen
     setShowWelcome(false);
-    
+
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       content: message,
-      sender: 'user',
-      timestamp: new Date()
+      sender: "user",
+      timestamp: new Date(),
     };
-    
-    setMessages(prev => [...prev, userMessage]);
+
+    setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
-    
+
     // Simulate AI response (replace with actual API call)
     setTimeout(() => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
-        content: "I've processed your message. Here's my response to: " + message,
-        sender: 'assistant',
-        timestamp: new Date()
+        content:
+          "I've processed your message. Here's my response to: " + message,
+        sender: "assistant",
+        timestamp: new Date(),
       };
-      
-      setMessages(prev => [...prev, assistantMessage]);
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      if (Math.random() > 0.5) {
+        setOptionGroups((prev) => [
+          ...prev,
+          {
+            id: Date.now().toString(),
+            options: [
+              "Tell me more",
+              "Why is that?",
+              "I understand",
+              "Let's change topic",
+            ],
+            forMessageId: assistantMessage.id,
+          },
+        ]);
+      }
+
       setIsLoading(false);
     }, 1500);
   };
-
   return (
-    <div 
+    <div
       ref={containerRef}
       className={cn(
-        "flex flex-col w-full", 
+        "flex flex-col w-full",
         "md:max-w-[644px] md:mx-auto",
         messages.length > 0 ? "justify-start" : "justify-center",
         className
       )}
       style={{
-        minHeight: showWelcome ? '380px' : 'auto',
-        maxHeight: '80vh', // Limit maximum height to 80% of viewport height
+        minHeight: showWelcome ? "380px" : "auto",
+        maxHeight: "80vh",
       }}
     >
       <div className="flex-grow overflow-y-auto scrollbar-hide">
@@ -132,25 +178,54 @@ const ChatContainer = ({
           />
         ) : (
           <div className="flex flex-col p-4 space-y-4">
-            {messages.map(message => (
-              <ChatBubble
-                key={message.id}
-                content={message.content}
-                sender={message.sender}
-                timestamp={message.timestamp}
-                userAvatar={userAvatar}
-                username={username}
-              />
+            {messages.map((message) => (
+              <React.Fragment key={message.id}>
+                <ChatBubble
+                  content={message.content}
+                  sender={message.sender}
+                  timestamp={message.timestamp}
+                  userAvatar={userAvatar}
+                  username={username}
+                />
+
+                {/* Render options below the assistant message they belong to */}
+                {message.sender === "assistant" &&
+                  optionGroups.find(
+                    (group) => group.forMessageId === message.id
+                  ) && (
+                    <div className="flex justify-end w-full mt-2">
+                      {" "}
+                      {/* Changed to justify-end */}
+                      <ChatOptions
+                        options={
+                          optionGroups.find(
+                            (group) => group.forMessageId === message.id
+                          )!.options
+                        }
+                        onOptionSelect={handleOptionSelect}
+                      />
+                    </div>
+                  )}
+              </React.Fragment>
             ))}
-            
+
             {isLoading && (
               <div className="flex space-x-2 p-2 self-start bg-white rounded-lg ml-12">
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{ animationDelay: '300ms' }}></div>
+                <div
+                  className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                ></div>
+                <div
+                  className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                ></div>
+                <div
+                  className="w-2 h-2 rounded-full bg-gray-400 animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                ></div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
         )}
