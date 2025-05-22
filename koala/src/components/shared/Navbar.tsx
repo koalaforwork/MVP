@@ -7,7 +7,9 @@ interface NavbarProps {
   avatarUrl?: string;
   avatarLoading?: boolean;
   className?: string;
+  hideTitleOnDesktop?: boolean;
   onAvatarUpdate?: (file: File) => Promise<void>;
+  onCheckInClick?: () => void;
 }
 
 const Navbar = ({
@@ -16,7 +18,9 @@ const Navbar = ({
   avatarUrl = "/icons/Avatar.png",
   avatarLoading = false,
   className,
+  hideTitleOnDesktop = false,
   onAvatarUpdate,
+  onCheckInClick
 }: NavbarProps) => {
   const [showUploadMenu, setShowUploadMenu] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -53,15 +57,18 @@ const Navbar = ({
       )}
     >
       <div className="w-full flex justify-between items-center px-4 md:px-8">
-        <div className="flex items-center gap-1">
-          <h1 className="text-[24px] font-semibold font-['inter'] leading-[100%] tracking-[-0.1px] text-[#323539]">
+        <div className={`flex items-center gap-1 ${hideTitleOnDesktop ? 'md:invisible' : ''}`}>
+          <button 
+            onClick={onCheckInClick}
+            className="text-[24px] font-semibold font-['inter'] leading-[100%] tracking-[-0.1px] text-[#323539] hover:text-blue-600 transition-colors"
+          >
             {title}
-          </h1>
+          </button>
         </div>
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-6">
             <div
-              className="h-8 w-8 rounded-full bg-gray-200 overflow-hidden"
+              className="h-8 w-8 rounded-full bg-gray-200 overflow-hidden cursor-pointer"
               onClick={handleAvatarClick}
             >
               {avatarLoading ? (

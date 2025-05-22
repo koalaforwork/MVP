@@ -5,7 +5,6 @@ import ChatInput from "./chatInput";
 import ChatBubble from "./chatBubble";
 import ChatOptions from "./chatOptions";
 
-// Define message type
 interface Message {
   id: string;
   content: string;
@@ -45,21 +44,17 @@ const ChatContainer = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, optionGroups, isLoading]);
 
-  // Handle prompt click
   const handlePromptClick = async (prompt: string) => {
     if (onPromptClick) onPromptClick(prompt);
 
-    // Hide welcome screen
     setShowWelcome(false);
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       content: prompt,
@@ -70,7 +65,6 @@ const ChatContainer = ({
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // TODO: replace with actual API call
     setTimeout(() => {
       const assistantMessageId = (Date.now() + 1).toString();
       const assistantMessage: Message = {
@@ -105,14 +99,11 @@ const ChatContainer = ({
     handleSendMessage(option);
   };
 
-  // Handle sending a message
   const handleSendMessage = async (message: string) => {
     if (onSendMessage) onSendMessage(message);
 
-    // Hide welcome screen
     setShowWelcome(false);
 
-    // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
       content: message,
@@ -123,7 +114,6 @@ const ChatContainer = ({
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Simulate AI response (replace with actual API call)
     setTimeout(() => {
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
@@ -187,15 +177,11 @@ const ChatContainer = ({
                   userAvatar={userAvatar}
                   username={username}
                 />
-
-                {/* Render options below the assistant message they belong to */}
                 {message.sender === "assistant" &&
                   optionGroups.find(
                     (group) => group.forMessageId === message.id
                   ) && (
                     <div className="flex justify-end w-full mt-2">
-                      {" "}
-                      {/* Changed to justify-end */}
                       <ChatOptions
                         options={
                           optionGroups.find(

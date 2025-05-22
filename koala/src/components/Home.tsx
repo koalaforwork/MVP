@@ -3,6 +3,7 @@ import { supabase } from "@/lib/supabaseClient";
 import { useNavigate } from "@tanstack/react-router";
 import Navbar from "./shared/Navbar";
 import ChatContainer from "./chat/chatContainer";
+import CheckInPage from "./check-in/CheckInPage";
 
 const Home = () => {
   const [userDbStatus, setUserDbStatus] = useState<
@@ -14,6 +15,7 @@ const Home = () => {
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [avatarLoading, setAvatarLoading] = useState(true);
+  const [isCheckInOpen, setIsCheckInOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -161,21 +163,38 @@ const Home = () => {
     // TODO: handle message sending logic
   };
 
+  const handleCheckInClick = () => {
+    setIsCheckInOpen(!isCheckInOpen);
+  };
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Fixed navbar at the top */}
-      <div className="flex-shrink-0">
+      {/* Navbar - conditionally styled for desktop */}
+      <div className={`flex-shrink-0 ${isCheckInOpen ? 'md:pl-[375px]' : ''}`}>
         <Navbar 
+          title="Today"
           username={session?.user?.user_metadata?.name || "User"} 
           avatarUrl={avatarUrl} 
           avatarLoading={avatarLoading} 
-          onAvatarUpdate={handleAvatarUpdate} 
+          onAvatarUpdate={handleAvatarUpdate}
+          onCheckInClick={handleCheckInClick}
+          // Hide the title on desktop when check-in is open
+          hideTitleOnDesktop={isCheckInOpen}
         />
       </div>
       
-      {/* Scrollable content area that takes remaining height */}
-      <div className="flex-grow flex flex-col overflow-hidden">
-        <div className="flex-grow flex items-center justify-center">
+      {/* Content area */}
+      <div className="flex-grow flex flex-col md:flex-row overflow-hidden relative">
+        {/* Check-in container */}
+        <CheckInPage
+          isOpen={isCheckInOpen}
+          username={session?.user?.user_metadata?.name || "User"}
+          userAvatar={avatarUrl}
+          onClose={() => setIsCheckInOpen(false)}
+        />
+        
+        {/* Chat container */}
+        <div className={`flex-grow flex items-center justify-center ${isCheckInOpen ? 'hidden md:flex' : 'flex'}`}>
           <div className="w-full max-w-[335px] md:max-w-[644px] mx-auto">
             <ChatContainer
               username={session?.user?.user_metadata?.name || "Valerie"}
