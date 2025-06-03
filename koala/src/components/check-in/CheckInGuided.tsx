@@ -2,14 +2,14 @@ import React, { useState } from "react";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 
-interface CheckInFlowProps {
+interface CheckInGuidedProps {
   className?: string;
   onComplete?: () => void;
 }
 
-const CheckInFlow: React.FC<CheckInFlowProps> = ({ className, onComplete }) => {
+const CheckInGuided: React.FC<CheckInGuidedProps> = ({ className, onComplete }) => {
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
-  const [completedItems, setCompletedItems] = useState<string[]>(['first-check-in', 'plan-my-day']);
+  const [completedItems, setCompletedItems] = useState<string[]>([]);
 
   const toggleItemSelection = (item: string) => {
     if (selectedItems.includes(item)) {
@@ -29,31 +29,27 @@ const CheckInFlow: React.FC<CheckInFlowProps> = ({ className, onComplete }) => {
     }
   };
 
-  const checkInItems = [
-    { id: 'first-check-in', title: 'First check in', duration: '5 mins' },
-    { id: 'plan-my-day', title: 'Plan my day', duration: '10 mins' },
-    { id: 'self-advocacy', title: 'Self advocacy document', duration: '60 mins' },
-    { id: 'sprint-goal', title: 'Draft sprint-goal outline for next cycle', duration: '~55 mins' },
-    { id: 'close-day', title: 'Close my day', duration: '~10 mins' },
+  const subtasks = [
+    { id: 'foundational-needs', title: 'Foundational needs check', duration: '1 mins' },
+    { id: 'somatic-body-scan', title: 'Somatic body scan', duration: '2 mins' },
+    { id: 'regular-activity', title: 'Regular activity (optional)', duration: '' },
   ];
-
-  const hasCompletedTasks = completedItems.length > 0;
 
   return (
     <div className={cn("flex flex-col items-center px-4 h-full", className)}>
       <div className="w-full max-w-[327px] flex flex-col h-full">
         <div className="w-full flex flex-col items-center gap-6 mt-8">
           <p className="w-full text-[16px] font-normal font-['inter'] leading-[24px] tracking-[-0.1px] text-[#323539]">
-            Energy started low today, but you still showed up. Gentle wins matter.
+            A guided exercise to understand your capacity and get you started with your work day.
           </p>
           
-          <div className="w-full flex justify-center items-center py-4">
-            <div className="w-[160px] h-[160px] relative">
+          <div className="w-full flex justify-center items-center py-8">
+            <div className="w-[200px] h-[200px] relative">
               <Image 
-                src="/images/suncloud.png" 
-                alt="Sun and Cloud" 
-                width={160} 
-                height={160}
+                src="/images/cup.png" 
+                alt="Cup" 
+                width={200} 
+                height={200}
                 priority
                 className="object-contain"
               />
@@ -65,11 +61,11 @@ const CheckInFlow: React.FC<CheckInFlowProps> = ({ className, onComplete }) => {
         
         <div className="w-full flex flex-col gap-4 mb-6">
           <h3 className="w-full text-[16px] font-semibold font-['inter'] leading-[20px] tracking-[-0.1px] text-[#323539]">
-            Tasks
+            Subtasks
           </h3>
           
           <div className="w-full flex flex-col gap-4">
-            {checkInItems.map((item) => {
+            {subtasks.map((item) => {
               const isCompleted = completedItems.includes(item.id);
               const isSelected = selectedItems.includes(item.id);
               
@@ -94,12 +90,14 @@ const CheckInFlow: React.FC<CheckInFlowProps> = ({ className, onComplete }) => {
                       )}>
                         {item.title}
                       </span>
-                      <span className={cn(
-                        "font-inter font-normal text-[14px] leading-[20px] tracking-[-0.1px]",
-                        isCompleted ? "text-[#C1C4C7]" : "text-[#323539]"
-                      )}>
-                        {item.duration}
-                      </span>
+                      {item.duration && (
+                        <span className={cn(
+                          "font-inter font-normal text-[14px] leading-[20px] tracking-[-0.1px]",
+                          isCompleted ? "text-[#C1C4C7]" : "text-[#323539]"
+                        )}>
+                          {item.duration}
+                        </span>
+                      )}
                     </div>
                     <div className="w-full h-2 bg-[#ECECEC] rounded-full">
                       <div 
@@ -133,15 +131,10 @@ const CheckInFlow: React.FC<CheckInFlowProps> = ({ className, onComplete }) => {
         
         <div className="w-full mt-4 mb-8">
           <button 
-            className={cn(
-              "w-full h-[48px] rounded-[8px] text-white font-medium py-3 px-7 flex items-center justify-center transition-colors",
-              hasCompletedTasks 
-                ? "bg-[#268771] hover:bg-[#1f6b5a]" 
-                : "bg-[#BDC5CF] hover:bg-[#A8B3BF]"
-            )}
+            className="w-full h-[48px] rounded-[8px] bg-[#BDC5CF] text-white font-medium py-3 px-7 flex items-center justify-center hover:bg-[#A8B3BF] transition-colors"
             onClick={onComplete}
           >
-            End day
+            End task
           </button>
         </div>
       </div>
@@ -149,4 +142,4 @@ const CheckInFlow: React.FC<CheckInFlowProps> = ({ className, onComplete }) => {
   );
 };
 
-export default CheckInFlow;
+export default CheckInGuided;

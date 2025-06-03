@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { cn } from "@/lib/utils";
+import CheckInGuided from "./CheckInGuided";
 import CheckInFlow from "./CheckInFlow";
+import CheckInReward from "./CheckInReward";
 
 interface CheckInContainerProps {
   className?: string;
@@ -15,6 +17,20 @@ const CheckInContainer: React.FC<CheckInContainerProps> = ({
   userAvatar,
   onClose,
 }) => {
+  const [currentStep, setCurrentStep] = useState<'guided' | 'tasks' | 'reward'>('guided');
+
+  const handleGuidedComplete = () => {
+    setCurrentStep('reward');
+  };
+
+  const handleRewardClaim = () => {
+    setCurrentStep('tasks');
+  };
+
+  const handleTasksComplete = () => {
+    onClose?.();
+  };
+
   return (
     <div
       className={cn(
@@ -51,7 +67,19 @@ const CheckInContainer: React.FC<CheckInContainerProps> = ({
       </div>
       
       <div className="flex-1 overflow-y-auto">
-        <CheckInFlow onComplete={onClose} className="py-4" />
+        {currentStep === 'guided' && (
+          <CheckInGuided onComplete={handleGuidedComplete} className="py-4" />
+        )}
+        {currentStep === 'reward' && (
+          <CheckInReward 
+            onClaim={handleRewardClaim} 
+            onClose={() => setCurrentStep('tasks')}
+            className="py-4" 
+          />
+        )}
+        {currentStep === 'tasks' && (
+          <CheckInFlow onComplete={handleTasksComplete} className="py-4" />
+        )}
       </div>
     </div>
   );
